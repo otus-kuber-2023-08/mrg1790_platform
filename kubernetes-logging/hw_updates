@@ -1,0 +1,6 @@
+1. node-role=infra:NoSchedule
+2. kubectl create ns microservices-demo
+kubectl apply -f https://raw.githubusercontent.com/express42/otus-platformsnippets/master/Module-02/Logging/microservices-demo-without-resources.yaml -n microservices-demo
+3. kubectl get pods -n microservices-demo -o wide
+
+4. ELK Stack
