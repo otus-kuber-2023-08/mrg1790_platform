@@ -35,33 +35,17 @@ k8s-cluster-creation:
   #Подключаемся по SSH к VM с агентом Yandex Cloud. Проверяем наличие кластера, если кластер не создан, создаём кластер и ноды.
     - ssh $YC_AGENT_USERNAME@$YC_AGENT_IP 'PATH=/home/gitlab/yandex-cloud/bin:$PATH && if [[ -n $(yc managed-kubernetes cluster list | grep microservices-demo) ]] ;  then  echo "Кластер уже создан" ; else yc managed-kubernetes cluster create microservices-demo --service-account-name k8s-cluster-pgo --network-name default --node-service-account-name k8s-cluster-pgo ; yc k8s node-group create --cluster-name microservices-demo microservices-demo --fixed-size 4 --cores 4 --memory 8 ; fi '
 
-build-adservice:
+build-microservices-demo:
   image: docker:latest
   services:
     - docker
   stage: build
   script:
     - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-    - |- 
-        for ms in $microservices ; do 
-         if [ $ms != cartservice ]; then 
-           cd ${ms:0:-1}
-           docker build -t mrg1790/${ms:0:-1}$CI_COMMIT_MESSAGE ./
-           docker push mrg1790/${ms:0:-1}:$CI_COMMIT_MESSAGE
-           cd .. ; 
-         else 
-           cd ${ms:0:-1}/src
-           docker build -t mrg1790/${ms:0:-1}$CI_COMMIT_MESSAGE ./
-           docker push mrg1790/${ms:0:-1}:$CI_COMMIT_MESSAGE
-           cd .. ; cd ..
-         fi ;
-        done
-    #- cd src/adservice
-  #- docker build -t mrg1790/adservice:$CI_COMMIT_MESSAGE ./
-   # - docker push mrg1790/adservice:$CI_COMMIT_MESSAGE
-   #- cd src/cartservice/src
-   #- docker build ./
-   #
+    - cd src
+    - microservices=$(ls -d *)
+    - echo $microservices
+    - for ms in $microservices ; do  if [ $ms != cartservice ]; then cd $ms && echo $ms ; docker build -t mrg1790/$ms:$CI_COMMIT_MESSAGE ./ ; docker push mrg1790/$ms:$CI_COMMIT_MESSAGE ; cd .. ; else cd $ms/src ; docker build -t mrg1790/$ms:$CI_COMMIT_MESSAGE ./ ; docker push mrg1790/$ms:$CI_COMMIT_MESSAGE ;   cd .. ; cd .. ;  fi ;  done 
 
 
 test1:
